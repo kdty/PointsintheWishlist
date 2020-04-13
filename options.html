@@ -10,7 +10,7 @@
 
 	<p>
 		読み込み時間：
-		<input type="number" name="delayTime" id="delaytime" min="100" step="100" value="2000">
+		<input type="number" name="delayTime" id="delaytime" min="100" step="100" value="100">
 	</p>
 	<p>
 		読み込みタイプ：
@@ -25,6 +25,18 @@
 			<option value="fetchapi" selected>FetchAPI</option>
 			<option value="jqueryajax">jQuery</option>
 		</select>
+	</p>
+	<p>
+		ポイント強調色(50%以上)：
+		<input type="color" name="pointColor50" id="pointcolor50" value="#800000">
+	</p>
+	<p>
+		ポイント強調色(40%以上)：
+		<input type="color" name="pointColor40" id="pointcolor40" value="#0000ff">
+	</p>
+	<p>
+		ポイント強調色(30%以上)：
+		<input type="color" name="pointColor30" id="pointcolor30" value="#008000">
 	</p>
 	<p>
 		<input type="button" id="save" value="保存" >
