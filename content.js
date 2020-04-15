@@ -17,6 +17,26 @@ window.addEventListener("load",function(eve){
 	});
 	//前のセッションが残っていた場合を考慮し最初のロード時に消す
 	sessionStorage.clear();
+	
+	if(!localStorage["fetchType"]){
+		localStorage["fetchType"]="fetchapi";
+	}
+	if(!localStorage["loadType"]){
+		localStorage["loadType"]="autoload";
+	}
+	if(!localStorage["delayTime"]){
+		localStorage["delayTime"]=100;
+	}
+	if(!localStorage["pointColor50"]){
+		localStorage["pointColor50"]="#800000";
+	}
+	if(!localStorage["pointColor40"]){
+		localStorage["pointColor40"]="#0000ff";
+	}
+	if(!localStorage["pointColor30"]){
+		localStorage["pointColor30"]="#008000";
+	}
+
 
 	//fetchAPIを用いるかjqueryのajaxを用いるか
 	if(localStorage["fetchType"]=="fetchapi"){
@@ -25,6 +45,13 @@ window.addEventListener("load",function(eve){
 		wishpoints(false);
 	}
 },false);
+
+const waitTime=100;
+function sleep(waitMsec){
+	return new Promise(function(resolve){
+		setTimeout(function(){resolve()},waitMsec);
+	});
+}
 
 //DOMの変更を監視する
 const obtarget = document.getElementById("g-items");
@@ -64,7 +91,7 @@ function pointToColor(points){
 }
 
 
-function wishpoints(enablefetch){
+async function wishpoints(enablefetch){
 	const dom_parser = new DOMParser();
 	//wishlist内のアイテムのリスト
 	const itemList = document.getElementsByClassName("price-section");
@@ -96,7 +123,7 @@ function wishpoints(enablefetch){
 
 		if(enablefetch){
 			//console.log("fetch");
-			fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: "no-referrer"})
+			fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: ''})
 			.then(res=>res.text())
 			.then(text=>{
 			const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
@@ -146,7 +173,7 @@ function wishpoints(enablefetch){
 			});
 		};
 		
-		
+		await sleep(10);
 	}
 	//debug
 	console.log(itemList.length);
