@@ -4,16 +4,18 @@ window.addEventListener("load",function(eve){
 									key1: "fetchType",
 									key2: "loadType",
 									key3: "delayTime",
-									key4: "pointColor50",
-									key5: "pointColor40",
-									key6: "pointColor30"
+									key4: "waitTime",
+									key5: "pointColor50",
+									key6: "pointColor40",
+									key7: "pointColor30"
 								}, function(response) {
 		localStorage["fetchType"]=response.data1;
 		localStorage["loadType"]=response.data2;
 		localStorage["delayTime"]=response.data3;
-		localStorage["pointColor50"]=response.data4;
-		localStorage["pointColor40"]=response.data5;
-		localStorage["pointColor30"]=response.data6;
+		localStorage["waitTime"]=response.data4;
+		localStorage["pointColor50"]=response.data5;
+		localStorage["pointColor40"]=response.data6;
+		localStorage["pointColor30"]=response.data7;
 	});
 	//前のセッションが残っていた場合を考慮し最初のロード時に消す
 	sessionStorage.clear();
@@ -26,6 +28,9 @@ window.addEventListener("load",function(eve){
 	}
 	if(!localStorage["delayTime"]){
 		localStorage["delayTime"]=100;
+	}
+	if(!localStorage["waitTime"]){
+		localStorage["waitTime"]=500;
 	}
 	if(!localStorage["pointColor50"]){
 		localStorage["pointColor50"]="#800000";
@@ -46,7 +51,7 @@ window.addEventListener("load",function(eve){
 	}
 },false);
 
-const waitTime=100;
+const waitTime=localStorage["waitTime"];
 function sleep(waitMsec){
 	return new Promise(function(resolve){
 		setTimeout(function(){resolve()},waitMsec);
@@ -138,7 +143,11 @@ async function wishpoints(enablefetch){
 				//console.log(points);
 				var spanColor = pointToColor(points);
 				//console.log(spanColor);
-				var insertText = "<br><span class=\"a-price\" data-a-size=\"m\" style=\"color:" + spanColor + ";\">" + points + "</span>";
+				var bgColor="#FFFFFF";
+				if(spanColor!="#000000"){
+					bgColor="#CCCCCC";
+				}
+				var insertText = "<br><span class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
 				//console.log(insertText);
 				item.firstElementChild.insertAdjacentHTML("afterend", insertText);
 			}
@@ -173,7 +182,7 @@ async function wishpoints(enablefetch){
 			});
 		};
 		
-		await sleep(10);
+		await sleep(waitTime);
 	}
 	//debug
 	console.log(itemList.length);
