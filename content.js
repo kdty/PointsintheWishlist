@@ -1,4 +1,33 @@
+if(typeof localStorage["fetchType"] == 'undefined'){
+	localStorage["fetchType"] = "fetchapi";
+}
+
+if(typeof localStorage["loadType"] == 'undefined'){
+	localStorage["loadType"] = "autoload";
+}
+
+if(typeof localStorage["delayTime"] == 'undefined'){
+	localStorage["delayTime"] = 1000;
+}
+
+if(typeof localStorage["waitTime"] == 'undefined'){
+	localStorage["waitTime"] = 1000;
+}
+
+if(typeof localStorage["pointColor50"] == 'undefined'){
+	localStorage["pointColor50"] = "#ff0000";
+}
+
+if(typeof localStorage["pointColor40"] == 'undefined'){
+	localStorage["pointColor40"] = "#00ff00";
+}
+
+if(typeof localStorage["pointColor30"] == 'undefined'){
+	localStorage["pointColor30"] = "#0000ff";
+}
+
 window.addEventListener("load",function(eve){
+	console.log("addEventListener load");
 	//options.htmlで設定した値をAmazonのローカルストレージに移す
 	chrome.runtime.sendMessage({method: "getLocalStorage", 
 									key1: "fetchType",
@@ -20,26 +49,32 @@ window.addEventListener("load",function(eve){
 	//前のセッションが残っていた場合を考慮し最初のロード時に消す
 	sessionStorage.clear();
 	
-	if(!localStorage["fetchType"]){
-		localStorage["fetchType"]="fetchapi";
+	if(typeof localStorage["fetchType"] == 'undefined'){
+		localStorage["fetchType"] = "fetchapi";
 	}
-	if(!localStorage["loadType"]){
-		localStorage["loadType"]="autoload";
+
+	if(typeof localStorage["loadType"] == 'undefined'){
+		localStorage["loadType"] = "autoload";
 	}
-	if(!localStorage["delayTime"]){
-		localStorage["delayTime"]=100;
+
+	if(typeof localStorage["delayTime"] == 'undefined'){
+		localStorage["delayTime"] = 1000;
 	}
-	if(!localStorage["waitTime"]){
-		localStorage["waitTime"]=500;
+
+	if(typeof localStorage["waitTime"] == 'undefined'){
+		localStorage["waitTime"] = 1000;
 	}
-	if(!localStorage["pointColor50"]){
-		localStorage["pointColor50"]="#800000";
+
+	if(typeof localStorage["pointColor50"] == 'undefined'){
+		localStorage["pointColor50"] = "#ff0000";
 	}
-	if(!localStorage["pointColor40"]){
-		localStorage["pointColor40"]="#0000ff";
+
+	if(typeof localStorage["pointColor40"] == 'undefined'){
+		localStorage["pointColor40"] = "#00ff00";
 	}
-	if(!localStorage["pointColor30"]){
-		localStorage["pointColor30"]="#008000";
+
+	if(typeof localStorage["pointColor30"] == 'undefined'){
+		localStorage["pointColor30"] = "#0000ff";
 	}
 
 
