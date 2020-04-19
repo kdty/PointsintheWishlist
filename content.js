@@ -163,7 +163,7 @@ async function wishpoints(enablefetch){
 
 		if(enablefetch){
 			//console.log("fetch");
-			fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: ''})
+			fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
 			.then(res=>res.text())
 			.then(text=>{
 			const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
