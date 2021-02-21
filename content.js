@@ -7,11 +7,11 @@ if(typeof localStorage["loadType"] == 'undefined'){
 }
 
 if(typeof localStorage["delayTime"] == 'undefined'){
-	localStorage["delayTime"] = 1000;
+	localStorage["delayTime"] = 5000;
 }
 
 if(typeof localStorage["waitTime"] == 'undefined'){
-	localStorage["waitTime"] = 1000;
+	localStorage["waitTime"] = 5000;
 }
 
 if(typeof localStorage["pointColor50"] == 'undefined'){
@@ -58,11 +58,11 @@ window.addEventListener("load",function(eve){
 	}
 
 	if(typeof localStorage["delayTime"] == 'undefined'){
-		localStorage["delayTime"] = 1000;
+		localStorage["delayTime"] = 5000;
 	}
 
 	if(typeof localStorage["waitTime"] == 'undefined'){
-		localStorage["waitTime"] = 1000;
+		localStorage["waitTime"] = 5000;
 	}
 
 	if(typeof localStorage["pointColor50"] == 'undefined'){
@@ -110,6 +110,10 @@ var point50plus = 0;
 var point40plus = 0;
 var point30plus = 0;
 
+var price50plus = 0;
+var price40plus = 0;
+var price30plus = 0;
+
 function pointToColor(points){
 	var point = points.match(/.+\((\d+)%\)/);
 	if(point[1]){
@@ -130,6 +134,25 @@ function pointToColor(points){
 	return '#000000';
 }
 
+function priceToColor(prices){
+	var price = prices.match(/.+\((\d+)%\)/);
+	if(price[1]){
+		if(price[1] >= 50){
+			price50plus++;
+			return localStorage["pointColor50"];
+		} else if( (price[1] < 50) && (price[1] >= 40) ){
+			price40plus++;
+			return localStorage["pointColor40"];
+		} else if( (price[1] < 40) && (price[1] >= 30) ){
+			price30plus++;
+			return localStorage["pointColor30"];
+		} else {
+			return '#000000';
+		}
+	}
+	
+	return '#000000';
+}
 
 async function wishpoints(enablefetch){
 	const dom_parser = new DOMParser();
@@ -143,14 +166,20 @@ async function wishpoints(enablefetch){
 	
 	const totalProcessedItemsCnt = olditemnum + itemList.length;
 	var processedItemsCnt = olditemnum;
-	var aaa = document.getElementById("listPrivacy");
-	console.log(aaa);
-	aaa.insertAdjacentHTML("afterend", "<br><span id=\"processedPercent\">" + processedItemsCnt / totalProcessedItemsCnt * 100 + "%</span>" + 
-										"<br><span id=\"point50plus\">over 50%: " + point50plus + "</span>" +
-										"<br><span id=\"point40plus\">40%～49%: " + point40plus + "</span>" +
-										"<br><span id=\"point30plus\">30%～39%: " + point30plus + "</span>"
-	);
+	
 	var bbb = document.getElementById("processedPercent");
+	
+	if(bbb == null)
+	{
+		var aaa = document.getElementById("listPrivacy");
+		console.log(aaa);
+		aaa.insertAdjacentHTML("afterend", "<br><span id=\"processedPercent\">" + processedItemsCnt / totalProcessedItemsCnt * 100 + "%</span>" + 
+											"<br><span id=\"point50plus\">over 50%: " + point50plus + "</span>" +
+											"<br><span id=\"point40plus\">40%～49%: " + point40plus + "</span>" +
+											"<br><span id=\"point30plus\">30%～39%: " + point30plus + "</span>"
+		);
+		bbb = document.getElementById("processedPercent");
+	}
 	console.log(bbb);
 	
 	var ccc = document.getElementById("point50plus");
@@ -160,41 +189,46 @@ async function wishpoints(enablefetch){
 	//以前に調べてないアイテムに対しfetchを行う
 	for(let item of Array.from(itemList).slice(olditemnum)){
 		const asin = JSON.parse(item.attributes["data-item-prime-info"].value).asin;
-
+		console.log("asin: " + asin);
+		
 		if(enablefetch){
-			//console.log("fetch");
+			console.log("fetch:" + asin);
 			fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
 			.then(res=>res.text())
 			.then(text=>{
-			const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
-			//debug
-			//console.log(lopoints);
-			//loyalty-pointsがない場合にはエラーが出るため存在判定
-			let points = "";
-			//console.log(lopoints.length);
-			if(lopoints.length!=0){
-				//points = lopoints[0].children[1].innerText.trim();
-				points = lopoints[0].innerText.trim().replace(/\s+/g, "").replace(/獲得ポイント:/g,"");
-				//console.log(points);
-				var spanColor = pointToColor(points);
-				//console.log(spanColor);
-				var bgColor="#FFFFFF";
-				if(spanColor!="#000000"){
-					bgColor="#CCCCCC";
+				const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
+				//debug
+				//console.log(lopoints);
+				//loyalty-pointsがない場合にはエラーが出るため存在判定
+				let points = "";
+				//console.log(lopoints.length);
+				if(lopoints.length!=0){
+					//points = lopoints[0].children[1].innerText.trim();
+					points = lopoints[0].innerText.trim().replace(/\s+/g, "").replace(/獲得ポイント:/g,"");
+					//console.log(points);
+					var spanColor = pointToColor(points);
+					//console.log(spanColor);
+					var bgColor="#FFFFFF";
+					if(spanColor!="#000000"){
+						bgColor="#CCCCCC";
+					}
+					var pAsin = document.getElementById("points_" + asin);
+					if (pAsin == null)
+					{
+						var insertText = '<br><span id=points_' + asin + " class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
+						console.log(insertText);
+						item.firstElementChild.insertAdjacentHTML("afterend", insertText);
+					}
 				}
-				var insertText = "<br><span class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
-				//console.log(insertText);
-				item.firstElementChild.insertAdjacentHTML("afterend", insertText);
-			}
-			//debug
-			//console.log(points);
-			processedItemsCnt++;
-			//console.log("processedItemsCnt: " + processedItemsCnt);
-			bbb.textContent = processedItemsCnt / totalProcessedItemsCnt * 100 + "%";
-			ccc.textContent = "over 50%: " + point50plus;
-			ddd.textContent = "40%～49%: " + point40plus;
-			eee.textContent = "30%～39%: " + point30plus;
-		}).catch(err=>console.error(err));
+				//debug
+				//console.log(points);
+				processedItemsCnt++;
+				//console.log("processedItemsCnt: " + processedItemsCnt);
+				bbb.textContent = processedItemsCnt / totalProcessedItemsCnt * 100 + "%";
+				ccc.textContent = "over 50%: " + point50plus;
+				ddd.textContent = "40%～49%: " + point40plus;
+				eee.textContent = "30%～39%: " + point30plus;
+			}).catch(err=>console.error(err));
 		}else{
 			//debug
 			// console.log("jquery ajax");

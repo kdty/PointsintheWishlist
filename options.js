@@ -27,14 +27,14 @@ window.addEventListener("load",function(eve){
 	if(typeof localStorage["delayTime"] != 'undefined'){
 		delayTime.value = localStorage["delayTime"];
 	} else {
-		delayTime.value = 1000;
+		delayTime.value = 5000;
 	}
 
 	let waitTime = document.getElementById("waittime");
 	if(typeof localStorage["waitTime"] != 'undefined'){
 		waitTime.value = localStorage["waitTime"];
 	} else {
-		waitTime.value = 1000;
+		waitTime.value = 5000;
 	}
 	
 	let pointColor50 = document.getElementById("pointcolor50");
