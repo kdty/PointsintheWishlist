@@ -114,6 +114,9 @@ var price50plus = 0;
 var price40plus = 0;
 var price30plus = 0;
 
+var totalItemsCnt = 0;
+var processedItemsCnt = 0;
+
 var FETCH_STAT = {	NOT_YET: 1,
 					FETTING:2,
 					DONE: 3
@@ -140,7 +143,7 @@ function pointToColor(points){
 }
 
 function priceToColor(prices){
-	var price = prices.match(/.+\((\d+)%\)/);
+	var price = prices.match(/(\d+)%/);
 	if(price[1]){
 		if(price[1] >= 50){
 			price50plus++;
@@ -163,10 +166,8 @@ async function wishpoints(enablefetch){
 	const dom_parser = new DOMParser();
 	//wishlist内のアイテムのリスト
 	const itemList = document.getElementsByClassName("price-section");
+	
 
-	const totalItemsCnt = itemList.length;
-	var processedItemsCnt = 0;
-		
 	var bbb = document.getElementById("processedPercent");
 	
 	if(bbb == null)
@@ -174,9 +175,14 @@ async function wishpoints(enablefetch){
 		var aaa = document.getElementById("listPrivacy");
 		console.log(aaa);
 		aaa.insertAdjacentHTML("afterend", "<br><span id=\"processedPercent\">" + processedItemsCnt / totalItemsCnt * 100 + "%</span>" + 
+											"<br><span>[point]</span>" +
 											"<br><span id=\"point50plus\">over 50%: " + point50plus + "</span>" +
 											"<br><span id=\"point40plus\">40%～49%: " + point40plus + "</span>" +
-											"<br><span id=\"point30plus\">30%～39%: " + point30plus + "</span>"
+											"<br><span id=\"point30plus\">30%～39%: " + point30plus + "</span>" +
+											"<br><span>[price drop]</span>" +
+											"<br><span id=\"price50plus\">over 50%: " + price50plus + "</span>" +
+											"<br><span id=\"price40plus\">40%～49%: " + price40plus + "</span>" +
+											"<br><span id=\"price30plus\">30%～39%: " + price30plus + "</span>"
 		);
 		bbb = document.getElementById("processedPercent");
 	}
@@ -186,18 +192,31 @@ async function wishpoints(enablefetch){
 	var ddd = document.getElementById("point40plus");
 	var eee = document.getElementById("point30plus");
 	
+	var fff = document.getElementById("price50plus");
+	var ggg = document.getElementById("price40plus");
+	var hhh = document.getElementById("price30plus");
 	
 	
-	//以前に調べてないアイテムに対しfetchを行う
 	for(let item of Array.from(itemList)){
-		const asin = JSON.parse(item.attributes["data-item-prime-info"].value).asin;
-		console.log("asin: " + asin);
+		const data_item_prime_info = JSON.parse(item.attributes["data-item-prime-info"].value);
+		const asin = data_item_prime_info.asin;
+		const itemId = data_item_prime_info.id;
+		
+		//console.log("asin: " + asin);
 		const key = "asin:" + asin;
+		
+		//console.log(JSON.parse(item.attributes["data-item-prime-info"].value));
+		
+		//以前に調べてないアイテムに対しfetchを行う
 		if(sessionStorage.getItem(key) === null)
 		{
+			totalItemsCnt++;
 			sessionStorage.setItem(key, FETCH_STAT.NOT_YET);
+			
+			const parentDoc = document;
+			
 			if(enablefetch){
-				console.log("fetch:" + asin);
+				//console.log("fetch:" + asin);
 				fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
 				.then(res=>res.text())
 				.then(text=>{
@@ -216,15 +235,19 @@ async function wishpoints(enablefetch){
 						//console.log(spanColor);
 						var bgColor="#FFFFFF";
 						if(spanColor!="#000000"){
-							bgColor="#CCCCCC";
+							bgColor="#000000";
 						}
 						var pAsin = document.getElementById("points_" + asin);
 						if (pAsin == null)
 						{
 							var insertText = '<br><span id=points_' + asin + " class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
-							console.log(insertText);
+							//console.log(insertText);
 							item.firstElementChild.insertAdjacentHTML("afterend", insertText);
 							
+							pAsin = document.getElementById("points_" + asin);
+							if(spanColor!="#000000"){
+								pAsin.classList.add('a-text-bold');
+							}
 							processedItemsCnt++;
 							sessionStorage.setItem(key, FETCH_STAT.DONE);
 						}
@@ -236,8 +259,33 @@ async function wishpoints(enablefetch){
 					//bbb.textContent = processedItemsCnt / totalItemsCnt * 100 + "%";
 					bbb.textContent = processedItemsCnt + "/" + totalItemsCnt;
 					ccc.textContent = "over 50%: " + point50plus;
-						ddd.textContent = "40%～49%: " + point40plus;
-						eee.textContent = "30%～39%: " + point30plus;
+					ddd.textContent = "40%～49%: " + point40plus;
+					eee.textContent = "30%～39%: " + point30plus;
+						
+					//console.log(typeof item);
+					var priceDropAsin = parentDoc.getElementById("itemPriceDrop_" + itemId);//itemPriceDrop_IC71PTVPG3C5K
+					if(priceDropAsin)
+					{
+						
+						var dropPercent = priceDropAsin.textContent.trim().replace(/\s+/g, "").replace(/価格が(.+)下がりました/g,"$1");
+						var dropColor = priceToColor(dropPercent);
+						//console.log(spanColor);
+						var bgColor="#FFFFFF";
+						if(dropColor!="#000000"){
+							bgColor="#000000";
+							priceDropAsin.setAttribute('data-a-size','m');
+							priceDropAsin.classList.add('a-price');
+						}
+						priceDropAsin.style.backgroundColor = bgColor;
+						priceDropAsin.style.color = dropColor;
+						
+						fff.textContent = "over 50%: " + price50plus;
+						ggg.textContent = "40%～49%: " + price40plus;
+						hhh.textContent = "30%～39%: " + price30plus;
+
+						//console.log(asin + ": " + dropPercent);
+					}
+
 				}).catch(err=>console.error(err));
 			}else{
 				//debug
@@ -265,6 +313,7 @@ async function wishpoints(enablefetch){
 		}
 		else if(sessionStorage.getItem(key) == FETCH_STAT.DONE)
 		{
+		/*
 			processedItemsCnt++;
 			//console.log("processedItemsCnt: " + processedItemsCnt);
 			//bbb.textContent = processedItemsCnt / totalItemsCnt * 100 + "%";
@@ -272,6 +321,7 @@ async function wishpoints(enablefetch){
 			ccc.textContent = "over 50%: " + point50plus;
 				ddd.textContent = "40%～49%: " + point40plus;
 				eee.textContent = "30%～39%: " + point30plus;
+		*/
 		}
 		
 		
