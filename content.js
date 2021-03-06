@@ -162,6 +162,8 @@ function priceToColor(prices){
 	return '#000000';
 }
 
+
+
 async function wishpoints(enablefetch){
 	const dom_parser = new DOMParser();
 	//wishlist内のアイテムのリスト
@@ -215,78 +217,156 @@ async function wishpoints(enablefetch){
 			
 			const parentDoc = document;
 			
+			
+			async function GetPoint(text){
+				
+				const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
+				//debug
+				//console.log(lopoints);
+				//loyalty-pointsがない場合にはエラーが出るため存在判定
+				let points = "";
+				//console.log(lopoints.length);
+				if(lopoints.length!=0){
+					//points = lopoints[0].children[1].innerText.trim();
+					points = lopoints[0].innerText.trim().replace(/\s+/g, "").replace(/獲得ポイント:/g,"");
+					//console.log(points);
+					var spanColor = pointToColor(points);
+					//console.log(spanColor);
+					var bgColor="#FFFFFF";
+					if(spanColor!="#000000"){
+						bgColor="#000000";
+					}
+					var pAsin = document.getElementById("points_" + asin);
+					if (pAsin == null)
+					{
+						var insertText = '<br><span id=points_' + asin + " class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
+						//console.log(insertText);
+						item.firstElementChild.insertAdjacentHTML("afterend", insertText);
+						
+						pAsin = document.getElementById("points_" + asin);
+						if(spanColor!="#000000"){
+							pAsin.classList.add('a-text-bold');
+						}
+						processedItemsCnt++;
+						sessionStorage.setItem(key, FETCH_STAT.DONE);
+					}
+				}
+				//debug
+				//console.log(points);
+				
+				//console.log("processedItemsCnt: " + processedItemsCnt);
+				//bbb.textContent = processedItemsCnt / totalItemsCnt * 100 + "%";
+				bbb.textContent = processedItemsCnt + "/" + totalItemsCnt;
+				ccc.textContent = "over 50%: " + point50plus;
+				ddd.textContent = "40%～49%: " + point40plus;
+				eee.textContent = "30%～39%: " + point30plus;
+					
+				//console.log(typeof item);
+				var priceDropAsin = parentDoc.getElementById("itemPriceDrop_" + itemId);//itemPriceDrop_IC71PTVPG3C5K
+				if(priceDropAsin)
+				{
+					
+					var dropPercent = priceDropAsin.textContent.trim().replace(/\s+/g, "").replace(/価格が(.+)下がりました/g,"$1");
+					var dropColor = priceToColor(dropPercent);
+					//console.log(spanColor);
+					var bgColor="#FFFFFF";
+					if(dropColor!="#000000"){
+						bgColor="#000000";
+						priceDropAsin.setAttribute('data-a-size','m');
+						priceDropAsin.classList.add('a-price');
+					}
+					priceDropAsin.style.backgroundColor = bgColor;
+					priceDropAsin.style.color = dropColor;
+					
+					fff.textContent = "over 50%: " + price50plus;
+					ggg.textContent = "40%～49%: " + price40plus;
+					hhh.textContent = "30%～39%: " + price30plus;
+
+					//console.log(asin + ": " + dropPercent);
+				}
+			}
+			
 			if(enablefetch){
 				//console.log("fetch:" + asin);
-				fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
-				.then(res=>res.text())
+				//fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
+				fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'include'})
+				.then(res=>{
+					var headers = Array.from(res.headers);
+					console.log(headers);
+
+					var keys = Array.from(res.headers.keys());
+					console.log(keys);
+					var csp = res.headers.get("strict-transport-security");
+					console.log('csp: ' + csp);
+					return res.text();
+				})
 				.then(text=>{
-					
-					const lopoints = dom_parser.parseFromString(text, "text/html").getElementsByClassName("loyalty-points");
-					//debug
-					//console.log(lopoints);
-					//loyalty-pointsがない場合にはエラーが出るため存在判定
-					let points = "";
-					//console.log(lopoints.length);
-					if(lopoints.length!=0){
-						//points = lopoints[0].children[1].innerText.trim();
-						points = lopoints[0].innerText.trim().replace(/\s+/g, "").replace(/獲得ポイント:/g,"");
-						//console.log(points);
-						var spanColor = pointToColor(points);
-						//console.log(spanColor);
-						var bgColor="#FFFFFF";
-						if(spanColor!="#000000"){
-							bgColor="#000000";
-						}
-						var pAsin = document.getElementById("points_" + asin);
-						if (pAsin == null)
-						{
-							var insertText = '<br><span id=points_' + asin + " class=\"a-price\" data-a-size=\"m\" style=\"background-color:" + bgColor + "; color:" + spanColor + ";\">" + points + "</span>";
-							//console.log(insertText);
-							item.firstElementChild.insertAdjacentHTML("afterend", insertText);
-							
-							pAsin = document.getElementById("points_" + asin);
-							if(spanColor!="#000000"){
-								pAsin.classList.add('a-text-bold');
-							}
-							processedItemsCnt++;
-							sessionStorage.setItem(key, FETCH_STAT.DONE);
-						}
-					}
-					//debug
-					//console.log(points);
-					
-					//console.log("processedItemsCnt: " + processedItemsCnt);
-					//bbb.textContent = processedItemsCnt / totalItemsCnt * 100 + "%";
-					bbb.textContent = processedItemsCnt + "/" + totalItemsCnt;
-					ccc.textContent = "over 50%: " + point50plus;
-					ddd.textContent = "40%～49%: " + point40plus;
-					eee.textContent = "30%～39%: " + point30plus;
-						
-					//console.log(typeof item);
-					var priceDropAsin = parentDoc.getElementById("itemPriceDrop_" + itemId);//itemPriceDrop_IC71PTVPG3C5K
-					if(priceDropAsin)
+					const domtree = dom_parser.parseFromString(text, "text/html");
+					var alertPage = domtree.title.includes('警告：アダルトコンテンツ');
+					console.log('alertPage: ' + alertPage);
+					if (alertPage)
 					{
-						
-						var dropPercent = priceDropAsin.textContent.trim().replace(/\s+/g, "").replace(/価格が(.+)下がりました/g,"$1");
-						var dropColor = priceToColor(dropPercent);
-						//console.log(spanColor);
-						var bgColor="#FFFFFF";
-						if(dropColor!="#000000"){
-							bgColor="#000000";
-							priceDropAsin.setAttribute('data-a-size','m');
-							priceDropAsin.classList.add('a-price');
+						function triggerEvent(element, event) {
+						   if (domtree.createEvent) {
+						       // IE以外
+						       var evt = domtree.createEvent("HTMLEvents");
+						       evt.initEvent(event, true, true ); // event type, bubbling, cancelable
+						       return element.dispatchEvent(evt);
+						   } else {
+						       // IE
+						       var evt = domtree.createEventObject();
+						       return domtree.fireEvent("on"+event, evt)
+						   }
 						}
-						priceDropAsin.style.backgroundColor = bgColor;
-						priceDropAsin.style.color = dropColor;
 						
-						fff.textContent = "over 50%: " + price50plus;
-						ggg.textContent = "40%～49%: " + price40plus;
-						hhh.textContent = "30%～39%: " + price30plus;
+						var elms = domtree.getElementsByClassName('alert');
+						var a_elm = elms[0].parentElement.getElementsByTagName('a')[0];
+						//var eRet = triggerEvent(a_elm, 'click');
+						//a_elm.click();
+						//console.log(eRet);
+						
+						//sleep(waitTime);
+						
+						//console.log(domtree);
+						/*
+						
+						
+						fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'include'})
+							.then(res2=>res2.text())
+							.then(text2=>GetPoint(text2))
+							.catch(err=>console.error(err));
+						*/
+						
 
-						//console.log(asin + ": " + dropPercent);
+						
+						var newURL = a_elm.href.replace('http:','');
+						console.log('newURL: ' + newURL);
+						let text2 = fetch(newURL,
+											{
+											credentials: 'include', 
+											referrer: '', 
+											redirect: 'error',
+											referrerPolicy: 'unsafe-url',
+											headers: { 'Upgrade-Insecure-Requests' : '1'}
+											})
+											.then(res2=>{
+												console.log('t2' + res2.text());
+												return res2.text();
+											})
+											.then(text2=>text2)
+											.catch(err=>console.error(err));
+						console.log('text2' + text2);
+						
+						
+						
 					}
-
-				}).catch(err=>console.error(err));
+					else
+					{
+						GetPoint(text);
+					}
+					
+				})
+				.catch(err=>console.error(err));
 			}else{
 				//debug
 				// console.log("jquery ajax");
