@@ -1,3 +1,18 @@
+let waitTime;
+
+let pointBgColor;
+
+let pointBgColorType;
+
+let pointColor50;
+let pointColor40;
+let pointColor30;
+
+let pointBgColor50;
+let pointBgColor40;
+let pointBgColor30;
+
+
 if(typeof localStorage["fetchType"] == 'undefined'){
 	localStorage["fetchType"] = "fetchapi";
 }
@@ -26,67 +41,110 @@ if(typeof localStorage["pointColor30"] == 'undefined'){
 	localStorage["pointColor30"] = "#0000ff";
 }
 
+if(typeof localStorage["pointBgColor"] == 'undefined'){
+	localStorage["pointBgColor"] = "#0f0f0f";
+}
+
+if(typeof localStorage["bgColorType"] == 'undefined'){
+	localStorage["bgColorType"] = "complementaryColor";
+}
+
 window.addEventListener("load",function(eve){
 	console.log("addEventListener load");
 	//options.htmlで設定した値をAmazonのローカルストレージに移す
-	chrome.runtime.sendMessage({method: "getLocalStorage", 
-									key1: "fetchType",
-									key2: "loadType",
-									key3: "delayTime",
-									key4: "waitTime",
-									key5: "pointColor50",
-									key6: "pointColor40",
-									key7: "pointColor30"
-								}, function(response) {
-		localStorage["fetchType"]=response.data1;
-		localStorage["loadType"]=response.data2;
-		localStorage["delayTime"]=response.data3;
-		localStorage["waitTime"]=response.data4;
-		localStorage["pointColor50"]=response.data5;
-		localStorage["pointColor40"]=response.data6;
-		localStorage["pointColor30"]=response.data7;
+	chrome.runtime.sendMessage({
+			method: "getLocalStorage", 
+			key1: "fetchType",
+			key2: "loadType",
+			key3: "delayTime",
+			key4: "waitTime",
+			key5: "pointColor50",
+			key6: "pointColor40",
+			key7: "pointColor30",
+			key8: "pointBgColor",
+			key9: "bgColorType"
+		}, function(response) {
+		
+			localStorage["fetchType"]=response.data1;
+			localStorage["loadType"]=response.data2;
+			localStorage["delayTime"]=response.data3;
+			localStorage["waitTime"]=response.data4;
+			localStorage["pointColor50"]=response.data5;
+			localStorage["pointColor40"]=response.data6;
+			localStorage["pointColor30"]=response.data7;
+			localStorage["pointBgColor"]=response.data8;
+			localStorage["bgColorType"]=response.data9;
+			
+			if(typeof localStorage["fetchType"] == 'undefined'){
+				localStorage["fetchType"] = "fetchapi";
+			}
+
+			if(typeof localStorage["loadType"] == 'undefined'){
+				localStorage["loadType"] = "autoload";
+			}
+
+			if(typeof localStorage["delayTime"] == 'undefined'){
+				localStorage["delayTime"] = 5000;
+			}
+
+			if(typeof localStorage["waitTime"] == 'undefined'){
+				localStorage["waitTime"] = 5000;
+			}
+
+			if(typeof localStorage["pointColor50"] == 'undefined'){
+				localStorage["pointColor50"] = "#ff0000";
+			}
+
+			if(typeof localStorage["pointColor40"] == 'undefined'){
+				localStorage["pointColor40"] = "#00ff00";
+			}
+
+			if(typeof localStorage["pointColor30"] == 'undefined'){
+				localStorage["pointColor30"] = "#0000ff";
+			}
+
+			if(typeof localStorage["pointBgColor"] == 'undefined'){
+				localStorage["pointBgColor"] = "#0f0f0f";
+			}
+
+			if(typeof localStorage["bgColorType"] == 'undefined'){
+				localStorage["bgColorType"] = "complementaryColor";
+			}
+			
+			//fetchAPIを用いるかjqueryのajaxを用いるか
+			if(localStorage["fetchType"]=="fetchapi"){
+				wishpoints(true);
+			}else if(localStorage["fetchType"]=="jqueryajax"){
+				wishpoints(false);
+			}
+			
+			waitTime = localStorage["waitTime"];
+
+			pointBgColor = localStorage["pointBgColor"];
+
+			pointBgColorType = localStorage["bgColorType"];
+
+			pointColor50 = localStorage["pointColor50"];
+			pointColor40 = localStorage["pointColor40"];
+			pointColor30 = localStorage["pointColor30"];
+
+			pointBgColor50 = (pointBgColorType == 'complementaryColor') ? 
+										calcComplementaryColor(pointColor50) : 
+										pointBgColor;
+			pointBgColor40 = (pointBgColorType == 'complementaryColor') ?
+										calcComplementaryColor(pointColor40) : 
+										pointBgColor;
+			pointBgColor30 = (pointBgColorType == 'complementaryColor') ?
+										calcComplementaryColor(pointColor30) : 
+										pointBgColor;
+
 	});
 	//前のセッションが残っていた場合を考慮し最初のロード時に消す
 	sessionStorage.clear();
 	
-	if(typeof localStorage["fetchType"] == 'undefined'){
-		localStorage["fetchType"] = "fetchapi";
-	}
 
-	if(typeof localStorage["loadType"] == 'undefined'){
-		localStorage["loadType"] = "autoload";
-	}
-
-	if(typeof localStorage["delayTime"] == 'undefined'){
-		localStorage["delayTime"] = 5000;
-	}
-
-	if(typeof localStorage["waitTime"] == 'undefined'){
-		localStorage["waitTime"] = 5000;
-	}
-
-	if(typeof localStorage["pointColor50"] == 'undefined'){
-		localStorage["pointColor50"] = "#ff0000";
-	}
-
-	if(typeof localStorage["pointColor40"] == 'undefined'){
-		localStorage["pointColor40"] = "#00ff00";
-	}
-
-	if(typeof localStorage["pointColor30"] == 'undefined'){
-		localStorage["pointColor30"] = "#0000ff";
-	}
-
-
-	//fetchAPIを用いるかjqueryのajaxを用いるか
-	if(localStorage["fetchType"]=="fetchapi"){
-		wishpoints(true);
-	}else if(localStorage["fetchType"]=="jqueryajax"){
-		wishpoints(false);
-	}
 },false);
 
-const waitTime=localStorage["waitTime"];
 function sleep(waitMsec){
 	return new Promise(function(resolve){
 		setTimeout(function(){resolve()},waitMsec);
@@ -106,60 +164,99 @@ const observer = new MutationObserver(records =>{
 });
 observer.observe(obtarget,{childList:true});
 
-var point50plus = 0;
-var point40plus = 0;
-var point30plus = 0;
+let point50plus = 0;
+let point40plus = 0;
+let point30plus = 0;
 
-var price50plus = 0;
-var price40plus = 0;
-var price30plus = 0;
+let price50plus = 0;
+let price40plus = 0;
+let price30plus = 0;
 
-var totalItemsCnt = 0;
-var processedItemsCnt = 0;
+let totalItemsCnt = 0;
+let processedItemsCnt = 0;
 
-var FETCH_STAT = {	NOT_YET: 1,
+let FETCH_STAT = {	NOT_YET: 1,
 					FETTING:2,
 					DONE: 3
 };
 
+
+
+function compareFunc(a, b) {
+  return a - b;
+}
+
+function calcComplementaryColor(color){	
+	var nrmColor = parseInt(color.replace(/#/g, ''),16);
+	var Rval = (nrmColor & 0xFF0000) >> 16;
+	var Gval = (nrmColor & 0x00FF00) >> 8;
+	var Bval = (nrmColor & 0x0000FF) >> 0;
+	
+	let primaryColors = new Array(Rval, Gval, Bval);
+	primaryColors.sort(compareFunc);
+	
+	const temp = primaryColors[0] + primaryColors[2];
+	
+	var newR = temp - Rval;
+	var newG = temp - Gval;
+	var newB = temp - Bval;
+	
+	complementaryColor = '#' +
+						( '00' + newR.toString(16)).slice( -2 ) +
+						( '00' + newG.toString(16)).slice( -2 ) +
+						( '00' + newB.toString(16)).slice( -2 );
+	
+	return complementaryColor;
+}
+
+
+
 function pointToColor(points){
 	var point = points.match(/.+\((\d+)%\)/);
+	var foreColor = '#000000';
+	var backColor = '#ffffff';
+	
 	if(point[1]){
 		if(point[1] >= 50){
 			point50plus++;
-			return localStorage["pointColor50"];
+			foreColor = pointColor50;
+			backColor = pointBgColor50;
 		} else if( (point[1] < 50) && (point[1] >= 40) ){
 			point40plus++;
-			return localStorage["pointColor40"];
+			foreColor = pointColor40;
+			backColor = pointBgColor40;
 		} else if( (point[1] < 40) && (point[1] >= 30) ){
 			point30plus++;
-			return localStorage["pointColor30"];
-		} else {
-			return '#000000';
+			foreColor = pointColor30;
+			backColor = pointBgColor30;
 		}
 	}
 	
-	return '#000000';
+	return Array(foreColor, backColor);
 }
 
 function priceToColor(prices){
 	var price = prices.match(/(\d+)%/);
+	var foreColor = '#000000';
+	var backColor = '#ffffff';
+
 	if(price[1]){
 		if(price[1] >= 50){
 			price50plus++;
-			return localStorage["pointColor50"];
+			foreColor = pointColor50;
+			backColor = pointBgColor50;
 		} else if( (price[1] < 50) && (price[1] >= 40) ){
 			price40plus++;
-			return localStorage["pointColor40"];
+			foreColor = pointColor40;
+			backColor = pointBgColor40;
 		} else if( (price[1] < 40) && (price[1] >= 30) ){
 			price30plus++;
-			return localStorage["pointColor30"];
-		} else {
-			return '#000000';
+			foreColor = pointColor30;
+			backColor = pointBgColor30;
 		}
 	}
 	
-	return '#000000';
+	return Array(foreColor, backColor);
 }
 
 
@@ -230,12 +327,20 @@ async function wishpoints(enablefetch){
 					//points = lopoints[0].children[1].innerText.trim();
 					points = lopoints[0].innerText.trim().replace(/\s+/g, "").replace(/獲得ポイント:/g,"");
 					//console.log(points);
+					
+					var Colors = pointToColor(points);
+					var spanColor = Colors[0];
+					var bgColor = Colors[1];
+					
+					/*
 					var spanColor = pointToColor(points);
 					//console.log(spanColor);
 					var bgColor="#FFFFFF";
 					if(spanColor!="#000000"){
-						bgColor="#000000";
+						//bgColor=pointBgColor;
+						bgColor=calcComplementaryColor(spanColor);
 					}
+					*/
 					var pAsin = document.getElementById("points_" + asin);
 					if (pAsin == null)
 					{
@@ -267,11 +372,17 @@ async function wishpoints(enablefetch){
 				{
 					
 					var dropPercent = priceDropAsin.textContent.trim().replace(/\s+/g, "").replace(/価格が(.+)下がりました/g,"$1");
-					var dropColor = priceToColor(dropPercent);
+					
+					var Colors = priceToColor(dropPercent);
+					var dropColor = Colors[0];
+					var bgColor = Colors[1];
+					
+					//var dropColor = priceToColor(dropPercent);
 					//console.log(spanColor);
-					var bgColor="#FFFFFF";
+					//var bgColor="#FFFFFF";
 					if(dropColor!="#000000"){
-						bgColor="#000000";
+						//bgColor=pointBgColor;
+						//bgColor=calcComplementaryColor(dropColor);
 						priceDropAsin.setAttribute('data-a-size','m');
 						priceDropAsin.classList.add('a-price');
 					}
@@ -291,80 +402,10 @@ async function wishpoints(enablefetch){
 				//fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'omit', referrer: '', referrerPolicy: 'no-referrer'})
 				fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'include'})
 				.then(res=>{
-					var headers = Array.from(res.headers);
-					console.log(headers);
-
-					var keys = Array.from(res.headers.keys());
-					console.log(keys);
-					var csp = res.headers.get("strict-transport-security");
-					console.log('csp: ' + csp);
 					return res.text();
 				})
 				.then(text=>{
-					const domtree = dom_parser.parseFromString(text, "text/html");
-					var alertPage = domtree.title.includes('警告：アダルトコンテンツ');
-					console.log('alertPage: ' + alertPage);
-					if (alertPage)
-					{
-						function triggerEvent(element, event) {
-						   if (domtree.createEvent) {
-						       // IE以外
-						       var evt = domtree.createEvent("HTMLEvents");
-						       evt.initEvent(event, true, true ); // event type, bubbling, cancelable
-						       return element.dispatchEvent(evt);
-						   } else {
-						       // IE
-						       var evt = domtree.createEventObject();
-						       return domtree.fireEvent("on"+event, evt)
-						   }
-						}
-						
-						var elms = domtree.getElementsByClassName('alert');
-						var a_elm = elms[0].parentElement.getElementsByTagName('a')[0];
-						//var eRet = triggerEvent(a_elm, 'click');
-						//a_elm.click();
-						//console.log(eRet);
-						
-						//sleep(waitTime);
-						
-						//console.log(domtree);
-						/*
-						
-						
-						fetch('https://www.amazon.co.jp/dp/'+asin,{credentials: 'include'})
-							.then(res2=>res2.text())
-							.then(text2=>GetPoint(text2))
-							.catch(err=>console.error(err));
-						*/
-						
-
-						
-						var newURL = a_elm.href.replace('http:','');
-						console.log('newURL: ' + newURL);
-						let text2 = fetch(newURL,
-											{
-											credentials: 'include', 
-											referrer: '', 
-											redirect: 'error',
-											referrerPolicy: 'unsafe-url',
-											headers: { 'Upgrade-Insecure-Requests' : '1'}
-											})
-											.then(res2=>{
-												console.log('t2' + res2.text());
-												return res2.text();
-											})
-											.then(text2=>text2)
-											.catch(err=>console.error(err));
-						console.log('text2' + text2);
-						
-						
-						
-					}
-					else
-					{
-						GetPoint(text);
-					}
-					
+					GetPoint(text);
 				})
 				.catch(err=>console.error(err));
 			}else{

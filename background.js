@@ -6,7 +6,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       				data4: localStorage[request.key4],
       				data5: localStorage[request.key5],
       				data6: localStorage[request.key6],
-      				data7: localStorage[request.key7]
+      				data7: localStorage[request.key7],
+      				data8: localStorage[request.key8],
+      				data9: localStorage[request.key9]
       				});
     else
       sendResponse({}); // snub them.

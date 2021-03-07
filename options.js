@@ -58,8 +58,26 @@ window.addEventListener("load",function(eve){
 		pointColor30.value = "#0000ff";
 	}
 	
-	let button = document.getElementById("save");
-	button.addEventListener("click",function(){
+	let pointBgColor = document.getElementById("pointBgColor");
+	if(typeof localStorage["pointBgColor"] != 'undefined'){
+		pointBgColor.value = localStorage["pointBgColor"];
+	} else {
+		pointBgColor.value = "#0f0f0f";
+	}
+	
+	let bgColorid = document.getElementById("bgColorid");
+	if(typeof localStorage["bgColorType"] != 'undefined'){
+		if(localStorage["bgColorType"] == "fixedColor"){
+			bgColorid.selectedIndex = 1;
+		} else {
+			bgColorid.selectedIndex = 0;
+		}
+	} else {
+		bgColorid.selectedIndex = 0;
+	}
+	
+	let buttonSave = document.getElementById("save");
+	buttonSave.addEventListener("click",function(){
 		localStorage["fetchType"] = fetchId.options[fetchId.selectedIndex].value;
 		localStorage["loadType"] = loadId.options[loadId.selectedIndex].value;
 		localStorage["delayTime"] = delayTime.value;
@@ -67,7 +85,11 @@ window.addEventListener("load",function(eve){
 		localStorage["pointColor50"] = pointColor50.value;
 		localStorage["pointColor40"] = pointColor40.value;
 		localStorage["pointColor30"] = pointColor30.value;
+		localStorage["pointBgColor"] = pointBgColor.value;
+		localStorage["bgColorType"] = bgColorid.options[bgColorid.selectedIndex].value;
+		
 		window.close();
 	},false);
+	
 },false);
 
